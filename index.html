@@ -191,10 +191,11 @@ function future(fixed,mon){const r=[],t=new Date();t.setHours(0,0,0,0);for(let i
 const f2=n=>n.toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2}),f0=n=>Math.round(n).toLocaleString('zh-CN');
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
 function showPage(n){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>{p.classList.remove('active');p.scrollTop=0;});
   document.querySelectorAll('.tt').forEach(t=>t.classList.remove('active'));
   document.body.classList.toggle('add-open', n==='add');
-  document.getElementById('page-'+n).classList.add('active');
+  const np=document.getElementById('page-'+n);
+  np.classList.add('active');np.scrollTop=0;
   document.querySelectorAll(`.tt[data-page="${n}"]`).forEach(t=>t.classList.add('active'));
   refreshCM();
   window.scrollTo(0,0);
