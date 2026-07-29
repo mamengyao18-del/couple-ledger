@@ -1,43 +1,45 @@
-import json, os, re, requests
+import json, os, base64, re, requests
 
-UP_URL = os.environ.get('UPSTASH_REDIS_REST_URL','')
-UP_TOKEN = os.environ.get('UPSTASH_REDIS_REST_TOKEN','')
-
-def redis_get(key):
-    if not UP_URL or not UP_TOKEN:
-        return None
-    try:
-        r = requests.get(f"{UP_URL}/get/{key}", headers={"Authorization": f"Bearer {UP_TOKEN}"}, timeout=5)
-        data = r.json()
-        if data.get('result'):
-            return json.loads(data['result'])
-    except Exception:
-        pass
-    return None
-
-def redis_set(key, value):
-    if not UP_URL or not UP_TOKEN:
-        return
-    try:
-        payload = {"value": json.dumps(value, ensure_ascii=False)}
-        requests.post(f"{UP_URL}/set/{key}", headers={"Authorization": f"Bearer {UP_TOKEN}", "Content-Type": "application/json"}, json=payload, timeout=5)
-    except Exception:
-        pass
+GH_TOKEN = os.environ.get('GH_TOKEN', '')
+REPO = os.environ.get('GH_REPO', 'mamengyao18-del/couple-ledger')
+DATA_DIR = 'data'
 
 def default_data():
     return {'tx':[],'rules':[],'fixed':[],'alerts':{'balance_threshold':3000,'ratio_threshold':0.8},'accts':{'pool':0,'fund':0,'stock':0},'cats':[],'goal':5000,'seen':True}
 
-def load_room(room):
-    safe = re.sub(r'[^a-zA-Z0-9_-]', '', room)[:40] or 'default'
-    data = redis_get(f"room:{safe}")
-    if data is None:
-        data = default_data()
-        redis_set(f"room:{safe}", data)
-    return data
+def gh_path(room):
+    safe = ''.join(c for c in room if c.isalnum() or c in '-_')[:40] or 'default'
+    return f"{DATA_DIR}/{safe}.json"
 
-def save_room(room, data):
-    safe = re.sub(r'[^a-zA-Z0-9_-]', '', room)[:40] or 'default'
-    redis_set(f"room:{safe}", data)
+def load_room(room):
+    path = gh_path(room)
+    url = f"https://api.github.com/repos/{REPO}/contents/{path}"
+    headers = {"Authorization": f"Bearer {GH_TOKEN}", "Accept": "application/vnd.github+json"}
+    try:
+        r = requests.get(url, headers=headers, timeout=8)
+        if r.status_code == 200:
+            d = r.json()
+            content = base64.b64decode(d['content']).decode('utf-8')
+            return json.loads(content), d.get('sha')
+    except Exception:
+        pass
+    return None, None
+
+def save_room(room, data, sha=None):
+    path = gh_path(room)
+    url = f"https://api.github.com/repos/{REPO}/contents/{path}"
+    headers = {"Authorization": f"Bearer {GH_TOKEN}", "Accept": "application/vnd.github+json"}
+    payload = {
+        "message": f"update {path}",
+        "content": base64.b64encode(json.dumps(data, ensure_ascii=False).encode('utf-8')).decode('utf-8')
+    }
+    if sha:
+        payload["sha"] = sha
+    try:
+        r = requests.put(url, headers=headers, json=payload, timeout=8)
+        return r.status_code in (200, 201)
+    except Exception:
+        return False
 
 def handler(request):
     method = request.get('method', 'GET')
@@ -54,7 +56,10 @@ def handler(request):
     key = m.group(2)
 
     if method == 'GET':
-        data = load_room(room)
+        data, _ = load_room(room)
+        if data is None:
+            data = default_data()
+            save_room(room, data)
         return json_resp(200, {key: data.get(key)} if key else data)
 
     if method in ('POST', 'PUT'):
@@ -62,13 +67,15 @@ def handler(request):
             body = json.loads(request.get('body') or '{}')
         except Exception:
             body = {}
-        data = load_room(room)
+        data, sha = load_room(room)
+        if data is None:
+            data = default_data()
         if key:
             data[key] = body.get(key, body)
         else:
             for k, v in body.items():
                 data[k] = v
-        save_room(room, data)
+        save_room(room, data, sha)
         return json_resp(200, data)
 
     return json_resp(405, {"error": "method not allowed"})
