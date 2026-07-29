@@ -149,7 +149,7 @@ saveGoal=function(g){_saveGoal(g);pushKey(KGOAL);};
 saveCats=function(c){_saveCats(c);pushKey(KCAT);};
 getCats=function(){return _getCats();};
 // init 时从后端拉取全量
-async function pullAll(){if(!SYNC_ON)return;const d=await apiGet(null);if(!d)return;for(const k of [KT,KR,KF,KA,KAC,KCAT,KGOAL]){if(d[k]!==undefined)sv(k,d[k]);}refreshCM();}
+async function pullAll(){if(!SYNC_ON)return;const d=await apiGet(null);if(!d)return;for(const k of [KT,KR,KF,KA,KAC,KCAT,KGOAL]){if(d[k]!==undefined)sv(k,d[k]);}refreshCM();renderHome();}
 // 身份
 function meBadge(p){return p==='me'?'👧':'👦';}
 // 轮询
@@ -172,7 +172,7 @@ function init(){
     sv(KS,true);
   }
 }
-function delTx(id){if(confirm('确定删除这笔记录吗？')){sv(KT,getTx().filter(t=>t.id!==id));pushKey(KT);renderTx();toast('已删除')}};
+function delTx(id){if(confirm('确定删除这笔记录吗？')){const f=getTx().filter(t=>t.id!==id);sv(KT,f);pushKey(KT);const ap=document.querySelector('.page.active')?.id;if(ap==='page-home')renderHome();if(ap==='page-transactions')renderTx();toast('已删除')}};
 
 function acctBalance(key){
   const accts=getAccts();

@@ -8,7 +8,7 @@ REPO = os.environ.get('GH_REPO', 'mamengyao18-del/couple-ledger')
 DATA_DIR = 'data'
 
 def default_data():
-    return {'tx':[],'rules':[],'fixed':[],'alerts':{'balance_threshold':3000,'ratio_threshold':0.8},'accts':{'pool':0,'fund':0,'stock':0},'cats':[],'goal':5000,'seen':True}
+    return {'cou_tx':[],'cou_rules':[],'cou_fixed':[],'cou_alerts':{'balance_threshold':3000,'ratio_threshold':0.8},'cou_accounts':{'pool':0,'fund':0,'stock':0},'cou_cats':[],'cou_goal':5000,'cou_seen':True}
 
 def gh_path(room):
     safe = ''.join(c for c in room if c.isalnum() or c in '-_')[:40] or 'default'
