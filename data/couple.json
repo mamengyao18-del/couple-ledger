@@ -1,0 +1,1 @@
+{"tx": [], "rules": [], "fixed": [], "alerts": {"balance_threshold": 3000, "ratio_threshold": 0.8}, "accts": {"pool": 0, "fund": 0, "stock": 0}, "cats": [], "goal": 5000, "seen": true}
