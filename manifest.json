@@ -1,0 +1,22 @@
+{
+  "name": "努力攒钱",
+  "short_name": "努力攒钱",
+  "description": "情侣共享记账本",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F6F3EA",
+  "theme_color": "#82B0C9",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
