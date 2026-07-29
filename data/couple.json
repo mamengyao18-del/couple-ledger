@@ -1,1 +1,1 @@
-{"tx": [], "rules": [], "fixed": [], "alerts": {"balance_threshold": 3000, "ratio_threshold": 0.8}, "accts": {"pool": 0, "fund": 0, "stock": 0}, "cats": [], "goal": 5000, "seen": true}
+{"tx": [], "rules": [], "fixed": [], "alerts": {"balance_threshold": 3000, "ratio_threshold": 0.8}, "accts": {"pool": 0, "fund": 0, "stock": 0}, "cats": [], "goal": 5000, "seen": true, "cou_tx": [{"date": "2026-07-29", "type": "expense", "amount": 11234, "category": "meal", "person": "me", "note": null, "account": "pool", "skip_saving": false, "skip_reason": null, "id": "ms5zzm9aat628t"}]}
