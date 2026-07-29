@@ -1,0 +1,6 @@
+{
+  "routes": [
+    {"src": "/api/room/(.*)", "dest": "/api/room.py"},
+    {"src": "/(.*)", "dest": "/index.html"}
+  ]
+}
