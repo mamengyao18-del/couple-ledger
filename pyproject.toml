@@ -1,2 +1,2 @@
 [tool.vercel]
-entrypoint = "api/room/index.py"
+entrypoint = "api.room.index:handler"
