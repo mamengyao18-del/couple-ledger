@@ -1,4 +1,7 @@
+from flask import Flask, request, jsonify
 import json, os, base64, re, requests
+
+app = Flask(__name__)
 
 GH_TOKEN = os.environ.get('GH_TOKEN', '')
 REPO = os.environ.get('GH_REPO', 'mamengyao18-del/couple-ledger')
@@ -10,6 +13,12 @@ def default_data():
 def gh_path(room):
     safe = ''.join(c for c in room if c.isalnum() or c in '-_')[:40] or 'default'
     return f"{DATA_DIR}/{safe}.json"
+
+def cors_headers(resp):
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    resp.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, OPTIONS'
+    resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    return resp
 
 def load_room(room):
     path = gh_path(room)
@@ -41,30 +50,24 @@ def save_room(room, data, sha=None):
     except Exception:
         return False
 
-def handler(request):
-    method = request.get('method', 'GET')
-    path = request.get('path', '/')
+@app.route('/api/room/<room>', methods=['GET', 'POST', 'PUT', 'OPTIONS'])
+@app.route('/api/room/<room>/<key>', methods=['GET', 'POST', 'PUT', 'OPTIONS'])
+def room_handler(room, key=None):
+    if request.method == 'OPTIONS':
+        resp = jsonify({})
+        return cors_headers(resp), 204
 
-    if method == 'OPTIONS':
-        return {"statusCode": 204, "headers": cors_headers(), "body": ""}
-
-    m = re.match(r'^/api/room/([^/]+)(?:/([^/]+))?$', path)
-    if not m:
-        return json_resp(404, {"error": "not found"})
-
-    room = m.group(1)
-    key = m.group(2)
-
-    if method == 'GET':
+    if request.method == 'GET':
         data, _ = load_room(room)
         if data is None:
             data = default_data()
             save_room(room, data)
-        return json_resp(200, {key: data.get(key)} if key else data)
+        resp = jsonify({key: data.get(key)} if key else data)
+        return cors_headers(resp), 200
 
-    if method in ('POST', 'PUT'):
+    if request.method in ('POST', 'PUT'):
         try:
-            body = json.loads(request.get('body') or '{}')
+            body = request.get_json(silent=True) or {}
         except Exception:
             body = {}
         data, sha = load_room(room)
@@ -76,18 +79,8 @@ def handler(request):
             for k, v in body.items():
                 data[k] = v
         save_room(room, data, sha)
-        return json_resp(200, data)
+        resp = jsonify(data)
+        return cors_headers(resp), 200
 
-    return json_resp(405, {"error": "method not allowed"})
-
-def cors_headers():
-    return {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
-    }
-
-def json_resp(code, obj):
-    headers = cors_headers()
-    headers['Content-Type'] = 'application/json; charset=utf-8'
-    return {"statusCode": code, "headers": headers, "body": json.dumps(obj, ensure_ascii=False)}
+    resp = jsonify({"error": "method not allowed"})
+    return cors_headers(resp), 405
