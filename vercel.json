@@ -1,10 +1,16 @@
 {
+  "builds": [
+    { "src": "index.html", "use": "@vercel/static" },
+    { "src": "manifest.json", "use": "@vercel/static" },
+    { "src": "icons/icon-192.png", "use": "@vercel/static" },
+    { "src": "icons/icon-512.png", "use": "@vercel/static" },
+    { "src": "api/index.py", "use": "@vercel/python" }
+  ],
   "routes": [
     { "src": "/api/room/(.*)", "dest": "/api/index.py" },
     { "src": "/api/room", "dest": "/api/index.py" },
-    { "src": "/icons/(.*)", "dest": "/icons/$1" },
     { "src": "/manifest.json", "dest": "/manifest.json" },
-    { "src": "/favicon.ico", "dest": "/icons/icon-192.png" },
+    { "src": "/icons/(.*)", "dest": "/icons/$1" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
